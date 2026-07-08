@@ -264,6 +264,77 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
 .lbtn.p{background:var(--u-accent);color:#fff}
 .lbtn.s{background:var(--u-panel2);color:var(--u-text);border:1px solid var(--u-border2)}
 .scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px);pointer-events:none;z-index:9999}
+
+/* ============ RESPONSIVE ============ */
+.hi-burger{display:none}
+.hi-overlay{display:none}
+@media (max-width:1100px){
+  .inspector{width:230px}
+  .bot-right{width:230px}
+}
+@media (max-width:980px){
+  .inspector{display:none}
+  .bottom{display:none}
+  .hierarchy{width:190px}
+}
+@media (max-width:820px){
+  html,body{font-size:11px}
+  .menubar{padding:0 4px}
+  .mb-item{display:none}
+  .mb-info{display:none}
+  .mb-spacer{flex:1}
+  .toolbar{flex-wrap:nowrap;overflow-x:auto}
+  .toolbar .tg:first-child{display:none}
+  .toolbar .tr .tb{display:none}
+  .toolbar .tr{gap:4px}
+  .play-zone{position:static;transform:none;margin-left:auto}
+  .main{position:relative}
+  .hierarchy{position:absolute;left:0;top:0;bottom:0;width:200px;z-index:50;box-shadow:6px 0 18px rgba(0,0,0,.5);transform:translateX(-100%);transition:transform .2s}
+  .hierarchy.open{transform:translateX(0)}
+  .hi-burger{display:flex;align-items:center;justify-content:center;width:26px;height:24px;background:var(--u-panel);border:1px solid var(--u-border2);border-radius:3px;cursor:pointer;font-size:13px;color:var(--u-text);margin-right:4px;flex-shrink:0}
+  .hi-overlay.open{display:block;position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:40}
+  .scene-tb{overflow-x:auto}
+  .vtabs{overflow-x:auto}
+  .vtabs::-webkit-scrollbar{display:none}
+  .vtab{white-space:nowrap;flex-shrink:0}
+  .hero{position:absolute;inset:0;flex-direction:column;justify-content:center;gap:22px;padding:16px;overflow-y:auto}
+  .avatar-wrap{width:150px;height:210px}
+  .hero-text{align-items:center;text-align:center;max-width:92%}
+  .hero-name{font-size:32px}
+  .hero-sub{font-size:10px}
+  .hero-chips{justify-content:center}
+  .hero-hint{display:none}
+  .section-panel{padding:18px 14px}
+  .sec-title{font-size:19px;flex-wrap:wrap;gap:6px}
+  .sec-tag{margin-left:0}
+  .proj-grid{grid-template-columns:1fr}
+  .skills-grid{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr}
+  .modal-ov{padding:14px}
+  .mwin{width:100%;max-height:92vh}
+  .mbody{flex-direction:column;overflow-y:auto}
+  .mprev{width:100%;flex-direction:row;align-items:center}
+  .mprev-vis{min-height:70px;font-size:38px}
+  .mprev-info{border-top:none;border-left:1px solid var(--u-border);flex-shrink:0;width:55%}
+  .statusbar{flex-wrap:nowrap;overflow-x:auto}
+  .statusbar .si{white-space:nowrap}
+}
+@media (max-width:480px){
+  .avatar-wrap{width:110px;height:155px}
+  .holo-ring.r1{width:170px;height:170px}
+  .holo-ring.r2{width:200px;height:200px}
+  .holo-ring.r3{width:230px;height:230px}
+  .hero-name{font-size:24px}
+  .chip{font-size:9px;padding:2px 7px}
+  .sec-title{font-size:16px}
+  .sec-tag{font-size:9px}
+  .exp-role{font-size:13px}
+  .proj-name{font-size:13px}
+  .hierarchy{width:78vw;max-width:260px}
+  .mprev{flex-direction:column}
+  .mprev-info{width:100%;border-left:none;border-top:1px solid var(--u-border)}
+  .statusbar .si:not(:first-child):not(:last-child){display:none}
+}
 </style>
 </head>
 <body>
@@ -278,6 +349,7 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
     <div class="mb-info">Unity 2023.3.12f1 Personal &nbsp;|&nbsp; Niel Ratna Ambastha</div>
   </div>
   <div class="toolbar">
+    <div class="hi-burger" onclick="toggleHierarchy()">&#9776;</div>
     <div class="tg"><div class="tb on">Q</div><div class="tb">W</div><div class="tb">E</div><div class="tb">R</div><div class="tb">T</div><div class="tb">Y</div></div>
     <div class="tg"><div class="tb tb-wide">Pivot &#9660;</div><div class="tb tb-wide">Global &#9660;</div></div>
     <div class="play-zone">
@@ -291,7 +363,8 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
     </div>
   </div>
   <div class="main">
-    <div class="hierarchy">
+    <div class="hi-overlay" id="hi-overlay" onclick="closeHierarchy()"></div>
+    <div class="hierarchy" id="hierarchy-panel">
       <div class="ph"><div class="ptab on">Hierarchy</div></div>
       <div class="searchbar"><input type="text" placeholder="Search..."></div>
       <div class="sname">&#9660; Portfolio Scene</div>
@@ -358,13 +431,14 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
           </div>
           <div class="hero-text">
             <div class="hero-name">Niel Ratna<br><span>Ambastha</span></div>
-            <div class="hero-sub">Game / XR Developer &nbsp;&middot;&nbsp; ~3 Years</div>
+            <div class="hero-sub">Game / XR Developer &nbsp;&middot;&nbsp; 3+ Years</div>
             <div class="hero-chips">
               <div class="chip c">C# &amp; C++</div>
               <div class="chip">Unity 2D / 3D</div>
               <div class="chip r">AR / VR &middot; XR</div>
               <div class="chip g">Android &middot; iOS</div>
               <div class="chip p">Photon &middot; Agora</div>
+              <div class="chip r">Haptic &amp; Eye-Tracking</div>
               <div class="chip">Defence Sims</div>
             </div>
             <div class="hero-hint">&#8592; Use Hierarchy or tabs to explore</div>
@@ -372,7 +446,7 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
         </div>
         <!-- EXPERIENCE -->
         <div class="section-panel" id="panel-exp">
-          <div class="sec-title">&#128188; Experience <span class="sec-tag">2 Roles &middot; ~3 Years</span></div>
+          <div class="sec-title">&#128188; Experience <span class="sec-tag">2 Roles &middot; 3+ Years</span></div>
           <div class="exp-card">
             <div class="exp-hdr" onclick="toggleExp('e1')">
               <div class="exp-ico" style="background:#0C1E30;border-color:#1A4A7A;">&#129405;</div>
@@ -380,12 +454,11 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
               <div class="exp-tog" id="et-e1">&#9658;</div>
             </div>
             <div class="exp-body" id="eb-e1"><ul class="exp-pts">
-              <li>Developed AR/VR training simulations and PoCs for defence, railway, and industrial programs using Unity and XR Toolkit.</li>
-              <li>Implemented realistic user interactions, training workflows, and safety procedures aligned with real-world scenarios.</li>
-              <li>Supported client-site development, deployment, and live demos ensuring smooth execution.</li>
-              <li>Built and maintained custom modular frameworks to improve code reuse, scalability, and faster project delivery.</li>
-              <li>Collaborated with senior engineers on architecture design, framework improvements, and system-level optimizations.</li>
-              <li>Performed profiling, debugging, and performance tuning to meet hardware and device constraints.</li>
+              <li>Developed AR/VR training simulations and Proof of Concepts (PoCs) for defence, railway, and industrial training programs using Unity and the Unity XR Toolkit.</li>
+              <li>Integrated immersive hardware &mdash; haptic gloves, haptic feet devices, eye-tracking VR headsets, gesture-based controllers, and custom in-house devices &mdash; for more realistic, sensory-rich training.</li>
+              <li>Designed realistic user interactions, training workflows, and safety procedures, and supported client-site development, deployment, and live demonstrations that translated operational requirements into functional XR solutions.</li>
+              <li>Built and maintained custom modular frameworks while partnering with senior engineers on architecture design, framework improvements, and system-level performance optimizations.</li>
+              <li>Performed profiling, debugging, and performance tuning to meet hardware and device constraints across XR platforms.</li>
               <li>Mentored junior developers through code reviews, technical guidance, and task breakdowns.</li>
             </ul></div>
           </div>
@@ -436,6 +509,8 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
               <div class="bar-row"><div class="bar-lbl"><span>Agora Voice SDK</span><span style="color:var(--u-dim)">80%</span></div><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--u-green)"></div></div></div>
               <div class="bar-row"><div class="bar-lbl"><span>PlayFab</span><span style="color:var(--u-dim)">72%</span></div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--u-orange)"></div></div></div>
               <div class="stags"><span class="stag">Matchmaking</span><span class="stag">Rooms</span><span class="stag">Leaderboards</span><span class="stag">Cloud Save</span></div></div>
+            <div class="sg" style="grid-column:1/-1"><div class="sg-title"><span>&#129513;</span> Immersive Hardware Integration</div>
+              <div class="stags"><span class="stag">Haptic Gloves</span><span class="stag">Haptic Feet Devices</span><span class="stag">Eye-Tracking VR</span><span class="stag">Gesture-Based Controllers</span><span class="stag">Custom In-House Hardware</span><span class="stag">Sensory-Rich Training Sims</span></div></div>
             <div class="sg"><div class="sg-title"><span>&#128241;</span> Platforms &amp; Tools</div>
               <div class="bar-row"><div class="bar-lbl"><span>Android / iOS</span><span style="color:var(--u-dim)">92%</span></div><div class="bar-track"><div class="bar-fill" style="width:92%;background:var(--u-green)"></div></div></div>
               <div class="bar-row"><div class="bar-lbl"><span>XR Headsets (Quest)</span><span style="color:var(--u-dim)">82%</span></div><div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--u-cyan)"></div></div></div>
@@ -449,11 +524,11 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
         <div class="section-panel" id="panel-about">
           <div class="sec-title">&#128100; About &amp; Contact <span class="sec-tag">Niel Ratna Ambastha</span></div>
           <div class="about-grid">
-            <div class="about-card" style="grid-column:1/-1"><h4>// Summary</h4><p class="summary-text">Unity Game &amp; XR Developer with ~3 years of experience in mobile game development and AR/VR simulations. Proven expertise in 2D/3D Unity games, XR training PoCs, and client-site deployment for defence and government projects. Skilled in building custom modular frameworks, optimizing performance, and delivering scalable solutions across Android, iOS, Desktop, Web, and XR platforms.</p></div>
+            <div class="about-card" style="grid-column:1/-1"><h4>// Summary</h4><p class="summary-text">Unity Game &amp; XR Developer with 3+ years of experience building 2D/3D mobile games and delivering AR/VR (XR) training simulations and PoCs for defence, railway, and industrial clients, including immersive hardware integration (haptic gloves, eye-tracking VR, gesture-based controllers) and client-site deployment. Skilled in C#, Unity3D, and the Unity XR Toolkit, with a strong track record of building scalable, optimized, cross-platform solutions.</p></div>
             <div class="about-card"><h4>// Contact</h4>
               <div class="c-row"><span>&#128222;</span><span>+91-6200463435</span></div>
               <div class="c-row"><span>&#9993;</span><span>nr4u2000@gmail.com</span></div>
-              <div class="c-row"><span>&#128205;</span><span>Sadhangar II, Palam, New Delhi</span></div>
+              <div class="c-row"><span>&#128205;</span><span>AFCAO Subroto Park, New Delhi</span></div>
               <div style="margin-top:10px;font-size:10px;color:var(--u-accent2);border:1px solid var(--u-accent);border-radius:3px;padding:6px 8px;background:rgba(76,126,255,.08)">&#9658; Open to full-time &amp; freelance</div>
             </div>
             <div class="about-card"><h4>// Education</h4>
@@ -486,7 +561,7 @@ html,body{width:100%;height:100%;background:var(--u-bg);font-family:"JetBrains M
   <div class="bottom">
     <div class="bot-left">
       <div class="ph"><div class="ptab on">Console</div><div class="ptab">Project</div></div>
-      <div class="con-tb"><div class="cbtn on">Clear</div><div class="cbtn">Collapse</div><div style="flex:1"></div><div class="ccnt i">&#8505; 7</div><div class="ccnt w">&#9888; 1</div><div class="ccnt e">&#10006; 0</div></div>
+      <div class="con-tb"><div class="cbtn on">Clear</div><div class="cbtn">Collapse</div><div style="flex:1"></div><div class="ccnt i">&#8505; 8</div><div class="ccnt w">&#9888; 1</div><div class="ccnt e">&#10006; 0</div></div>
       <div class="con-body" id="con-body"></div>
     </div>
     <div class="bot-right">
@@ -536,6 +611,7 @@ var PROJS={
     {t:"ok",m:"[Hologram] Photo-based hologram active",ts:"00:00.006"},
     {t:"ok",m:"[ThreeJS] WebGL 2.0 renderer active",ts:"00:00.014"},
     {t:"info",m:"[XR] ARCore/ARKit feature sets registered",ts:"00:00.031"},
+    {t:"ok",m:"[Hardware] Haptic gloves & eye-tracking VR bridge online",ts:"00:00.038"},
     {t:"ok",m:"[Photon] PUN ready — Region: Asia (IN)",ts:"00:00.047"},
     {t:"ok",m:"[Agora] Voice SDK initialised",ts:"00:00.063"},
     {t:"warn",m:"[Shader] URP fallback active on WebGL",ts:"00:00.099"},
@@ -551,7 +627,16 @@ var PROJS={
     el.appendChild(d);
   });
 })();
+function toggleHierarchy(){
+  document.getElementById("hierarchy-panel").classList.toggle("open");
+  document.getElementById("hi-overlay").classList.toggle("open");
+}
+function closeHierarchy(){
+  document.getElementById("hierarchy-panel").classList.remove("open");
+  document.getElementById("hi-overlay").classList.remove("open");
+}
 function navTo(id){
+  closeHierarchy();
   document.getElementById("hero-overlay").classList.toggle("hidden",id!=="hero");
   document.querySelectorAll(".section-panel").forEach(function(p){p.classList.remove("active");});
   if(id!=="hero"){var p=document.getElementById("panel-"+id);if(p)p.classList.add("active");}
@@ -586,6 +671,7 @@ function togComp(i){document.getElementById("cb"+i).classList.toggle("op");docum
 function toggleExp(id){document.getElementById("eb-"+id).classList.toggle("open");document.getElementById("et-"+id).classList.toggle("open");}
 function openModal(key){
   var p=PROJS[key];if(!p)return;
+  closeHierarchy();
   document.querySelectorAll(".hi").forEach(function(h){h.classList.remove("sel");});
   var hEl=document.getElementById("hp-"+key);if(hEl)hEl.classList.add("sel");
   document.getElementById("m-ico").innerHTML=p.emoji;
